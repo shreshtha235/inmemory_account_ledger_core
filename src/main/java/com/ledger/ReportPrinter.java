@@ -57,13 +57,15 @@ public final class ReportPrinter {
 
         out.printf("  %s  %s%n", id, account.currency());
         out.printf(FIELD, "closing ledger balance (at close)", asAtClose.format());
-        ledger.backdatedViewsFor(id, day).forEach((bookingDay, bal) -> {
+        Map<Integer, Money> backdated = ledger.backdatedViewsFor(id, day);
+        backdated.forEach((bookingDay, bal) -> {
             if (!bal.equals(asAtClose)) {
                 out.printf(FIELD, "closing ledger balance (as known Day " + bookingDay + ")",
                         bal.format() + "   <-- backdated entry arrived on day " + bookingDay);
             }
         });
-        if (!restated.equals(asAtClose)) {
+        boolean restatedAlreadyShown = backdated.containsValue(restated);
+        if (!restated.equals(asAtClose) && !restatedAlreadyShown) {
             out.printf(FIELD, "closing ledger balance (restated now)",
                     restated.format() + "   <-- changed by a later backdated entry");
         }
